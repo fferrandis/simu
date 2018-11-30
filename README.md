@@ -69,4 +69,39 @@ So when we start the simulator, the internal timer is at 0.
 After receiving 125000000b, the internal timer is at 1 000 000 000 ns (1s)
 And so on ....
 
-When a put is routed to a disk
+When a put is routed to a disk, the relative timestamp is computed according all bytes already sent
+since the beginning.
+The disk has an 'in-memory' workload (represented in ns), which is decreased with the following formula
+
+```
+/* convert a write operation to a time */
+func dataputtoload(datalen uint64, write_speed uint64) float64 {
+        return float64(datalen) / float64(write_speed)
+}
+
+/* convert a read operation to a time */
+func datagettoload(datalen uint64, read_speed uint64) float64 {
+        return float64(datalen) / float64(read_speed)
+}
+
+/* we update the last ts of the disk. By doing that, we also deduced the total work
+ * that has been done meanwhile, and update it
+ */
+func (this *Disk) settime(ts uint64) {
+        delta := ts - this.lastts
+        this.lastts = ts
+
+        delta_float := float64(delta) / float64(1000000000)
+        if delta_float > this.load {
+                this.load = 0
+        } else {
+                this.load -= delta_float
+        }
+}
+
+.....
+In a put operation :
+                /* flush data */
+                this.settime(ts)
+                this.load = this.load + dataputtoload(datalen, this.write_speed)
+```
