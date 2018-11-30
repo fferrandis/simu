@@ -104,8 +104,8 @@ func (this *Disk) NewFile(filelen uint64, ts uint64) (bool, uint64) {
 
 }
 
-func DiskNew(capacity uint64, write_speed uint64, read_speed uint64, ts_create uint64) Disk {
-	r := Disk{capacity: capacity,
+func DiskNew(capacity uint64, write_speed uint64, read_speed uint64, ts_create uint64) *Disk {
+	return &Disk{capacity: capacity,
 		used:        0,
 		totalw:      0,
 		totalr:      0,
@@ -113,6 +113,4 @@ func DiskNew(capacity uint64, write_speed uint64, read_speed uint64, ts_create u
 		write_speed: write_speed,
 		read_speed:  read_speed,
 	}
-	return r
-
 }

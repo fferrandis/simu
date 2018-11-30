@@ -2,15 +2,15 @@ package hdserver
 
 import (
 	"fmt"
-	. "scality/hyperdrive/disks"
 	"testing"
+
+	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
 )
 
 func TestServer(t *testing.T) {
-	var hd HDSrv
 	/*disk model */
 	r := DiskNew(2000, 100, 100, 0)
-	hd.HDSrvInit(4, 2, 1000, r, 6, 0)
+	hd := NewHDSrv(4, 2, 1000, r, 6, 0)
 
 	/* fill 4 extents (size = 1000) */
 	fmt.Println("inject again 4x500b")

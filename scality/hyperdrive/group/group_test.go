@@ -1,9 +1,10 @@
 package group
 
 import (
-	. "scality/hyperdrive/disks"
-	. "scality/hyperdrive/diskset"
 	"testing"
+
+	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
+	. "github.com/fferrandis/simu/scality/hyperdrive/diskset"
 )
 
 func TestGroupOVerflow(t *testing.T) {

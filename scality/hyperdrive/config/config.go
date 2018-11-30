@@ -34,17 +34,14 @@ type HdCfg struct {
 	Hdservers       []HdSrvCfg
 }
 
-var HDCFG HdCfg
-
-func init() {
-	HDCFG.Write_speed = WRITESPEED
-	HDCFG.Read_speed = READSPEED
-	HDCFG.Data_scheme = DATASCHEME
-	HDCFG.Coding_scheme = CODINGSCHEME
-	HDCFG.Extent_size = EXTENTSIZE
-	HDCFG.Network_bdwidth = NETWORKTHR
-
-	HDCFG.Hdservers = make([]HdSrvCfg, 0)
+var HDCFG = HdCfg{
+	Write_speed:     WRITESPEED,
+	Read_speed:      READSPEED,
+	Data_scheme:     DATASCHEME,
+	Coding_scheme:   CODINGSCHEME,
+	Extent_size:     EXTENTSIZE,
+	Network_bdwidth: NETWORKTHR,
+	Hdservers:       make([]HdSrvCfg, 0),
 }
 
 func HDCfgDefault() {

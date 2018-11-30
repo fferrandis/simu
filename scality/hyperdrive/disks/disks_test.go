@@ -6,7 +6,7 @@ import (
 )
 
 func TestPutData(t *testing.T) {
-	var v = Disk{capacity: 2000000000, // 200 Gb
+	v := Disk{capacity: 2000000000, // 200 Gb
 		used:        0,
 		totalw:      0,
 		totalr:      0,

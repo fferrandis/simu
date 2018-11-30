@@ -2,8 +2,9 @@ package hdcluster
 
 import (
 	"fmt"
-	cfg "scality/hyperdrive/config"
 	"testing"
+
+	cfg "github.com/fferrandis/simu/scality/hyperdrive/config"
 )
 
 func TestCluster(t *testing.T) {

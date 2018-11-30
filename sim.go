@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	hdcfg "scality/hyperdrive/config"
-	"scality/hyperdrive/hdio"
+
+	hdcfg "github.com/fferrandis/simu/scality/hyperdrive/config"
+	"github.com/fferrandis/simu/scality/hyperdrive/hdio"
 )
 
 func main() {
