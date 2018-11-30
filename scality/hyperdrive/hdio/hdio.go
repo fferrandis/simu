@@ -2,14 +2,14 @@ package hdio
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
-	hdcfg "scality/hyperdrive/config"
-	. "scality/hyperdrive/hdcluster"
 	"strconv"
 	"sync"
+
+	hdcfg "github.com/fferrandis/simu/scality/hyperdrive/config"
+	. "github.com/fferrandis/simu/scality/hyperdrive/hdcluster"
 )
 
 type HDIoChanMsg struct {
@@ -48,7 +48,6 @@ func getnextchan() int {
 }
 
 func worker(id int) {
-
 	for {
 		nextjob, ok := <-hdio.msg[id]
 
@@ -80,10 +79,9 @@ func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
 		data := <-hdio.ret[id]
 		loadstr := strconv.FormatUint(data.load, 10)
 		resp.Header().Add("X-IO-Load", loadstr)
-		body_str := "{\"scal-response-time\" : " + loadstr + "}\n"
-		resp.Header().Add("Content-Length", strconv.Itoa(len(body_str)))
+		bodyStr := "{\"scal-response-time\" : " + loadstr + "}\n"
 		resp.WriteHeader(data.code)
-		io.WriteString(resp, body_str)
+		resp.Write([]byte(bodyStr))
 
 	} else {
 		for i := 0; i < hdio.nr; i++ {
@@ -108,8 +106,8 @@ func createworkerpool(nr int) {
 }
 
 func root(resp http.ResponseWriter, req *http.Request) {
-	io.WriteString(resp, "realtime statistics not available yet")
 	resp.WriteHeader(501)
+	resp.Write([]byte("realtime statistics not available yet"))
 }
 
 func addsrv(resp http.ResponseWriter, req *http.Request) {
@@ -141,7 +139,7 @@ func onput(resp http.ResponseWriter, req *http.Request) {
 	}
 	m, _ := url.ParseQuery(req.URL.RawQuery)
 	val, found := m["datalen"]
-	if found == false {
+	if !found {
 		fmt.Println("datalen not specified ")
 		return
 	}

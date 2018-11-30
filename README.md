@@ -1,27 +1,31 @@
 # simu
+
 simple simulator to manage data dispatch across several servers and disks
 
 ## Build and install
-```
+
+```bash
 export GOPATH=<path_to_repository>
 go install sim
 ```
 
-## start simulator 
-```
+## start simulator
+
+```bash
 ./bin/sim [--config=<path_to_config_file>]
 ```
 
 ## Send some data and get time needed to perform the IO
-```
- curl    -XPUT   'localhost:8080/put?datalen=134100000'; 
+
+```bash
+ curl    -XPUT   'localhost:8080/put?datalen=134100000';
 {"scal-response-time" : 1341000000}
 
 ```
+
 The answer contains a simple json giving us the time needed to perform the IO
 This value is a nsec number, so in that example
 {"scal-response-time" : 1341000000} is 1s and 341ms
-
 
 ## Configuration
 
@@ -49,15 +53,15 @@ You can directly supplied a simple json, with that format :
 }
 
 ```
+
 * write\_speed is the speed in b/s to perform writes. This is global to all disk
 * read\_speed is the same but for read operation
 * extent\_size  is the size of a container that receive ata
 * {data,coding}\_scheme is the ECE schema used
 * network\_bdwidth is the network upload speed in bytes/s
 * hdservers section describe all the servers you will declare.  
-  - nr\_disk is the number od disk for one server
-  - capacity is size in bytes
-
+  * nr\_disk is the number od disk for one server
+  * capacity is size in bytes
 
 ## Time IO computation
 
@@ -73,7 +77,7 @@ When a put is routed to a disk, the relative timestamp is computed according all
 since the beginning.
 The disk has an 'in-memory' workload (represented in ns), which is decreased with the following formula
 
-```
+```go
 /* convert a write operation to a time */
 func dataputtoload(datalen uint64, write_speed uint64) float64 {
         return float64(datalen) / float64(write_speed)
