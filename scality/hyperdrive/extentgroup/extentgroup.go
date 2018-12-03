@@ -27,8 +27,8 @@ func (e *Extent) ExtentPutData(datalen uint64, ts uint64) (bool, uint64) {
 	return r, load
 }
 
-func NewExtent(size uint64, dref *Disk) *Extent {
-	return &Extent{extentsize: size, diskref: dref}
+func NewExtent(size uint64, dref *Disk, id int) *Extent {
+	return &Extent{extentsize: size, diskref: dref, id: id}
 }
 
 func (e *Extent) ExtentUsageGet() (uint64, uint64) {
@@ -113,9 +113,7 @@ func (e *ExtentDataGroup) ExtentDataGroupInit(disk []*Disk,
 	e.nrdata = nrdata
 	e.extentsize = extentsize
 	for i := 0; i < nrdata; i++ {
-		e.list[i] = NewExtent(extentsize, disk[i])
-		e.list[i].id = i
-
+		e.list[i] = NewExtent(extentsize, disk[i], i)
 		/* create file if we can */
 		ret, _ := disk[i].NewFile(extentsize, ts)
 		if ret != true {
@@ -133,11 +131,7 @@ func (e *ExtentCodingGroup) ExtentCodingGroupInit(disk []*Disk,
 	e.nrcoding = nrcoding
 	e.extentsize = extentsize
 	for i := 0; i < nrcoding; i++ {
-		e.list[i] = &Extent{}
-		e.list[i].diskref = disk[i]
-		e.list[i].usage = 0
-		e.list[i].extentsize = extentsize
-		e.list[i].id = i
+		e.list[i] = NewExtent(extentsize, disk[i], i)
 		ret, _ := disk[i].NewFile(extentsize, ts)
 		if ret != true {
 			panic("disk overflow")

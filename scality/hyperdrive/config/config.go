@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 )
 
 const (
@@ -16,17 +17,23 @@ const (
 	NETWORKTHR          = 125000000 // 1Gb/s
 	NRDISKDEFAULT       = 64
 	CAPACITYDISKDEFAULT = 5000000000 // 5Giga
-
+	NRSRVDEFAULT        = 3
 )
 
+type DiskCfg struct {
+	Capacity     uint64
+	Write_speed  uint64
+	Read_speed   uint64
+	Nr_instances int
+}
+
+/* global configuration */
 type HdSrvCfg struct {
-	Nr_disk  int
-	Capacity uint64
+	Name       string
+	Diskconfig []DiskCfg
 }
 
 type HdCfg struct {
-	Write_speed     uint64
-	Read_speed      uint64
 	Extent_size     uint64
 	Data_scheme     int
 	Coding_scheme   int
@@ -35,21 +42,31 @@ type HdCfg struct {
 }
 
 var HDCFG = HdCfg{
-	Write_speed:     WRITESPEED,
-	Read_speed:      READSPEED,
+	Extent_size:     EXTENTSIZE,
 	Data_scheme:     DATASCHEME,
 	Coding_scheme:   CODINGSCHEME,
-	Extent_size:     EXTENTSIZE,
 	Network_bdwidth: NETWORKTHR,
 	Hdservers:       make([]HdSrvCfg, 0),
 }
 
 func HDCfgDefault() {
 	fmt.Println("no readable configuration, use default settings")
-	HDCFG.Hdservers = append(HDCFG.Hdservers, HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT})
-	HDCFG.Hdservers = append(HDCFG.Hdservers, HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT})
-	HDCFG.Hdservers = append(HDCFG.Hdservers, HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT})
 
+	model := DiskCfg{
+		Capacity:     CAPACITYDISKDEFAULT,
+		Write_speed:  WRITESPEED,
+		Read_speed:   READSPEED,
+		Nr_instances: NRDISKDEFAULT,
+	}
+
+	for i := uint64(0); i < NRSRVDEFAULT; i++ {
+		hdsrv := HdSrvCfg{
+			Name:       "hserver" + strconv.FormatUint(i, 10),
+			Diskconfig: make([]DiskCfg, 1),
+		}
+		hdsrv.Diskconfig = append(hdsrv.Diskconfig, model)
+		HDCFG.Hdservers = append(HDCFG.Hdservers, hdsrv)
+	}
 }
 
 func HDCfgLoad(filename *string) {

@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
-	. "github.com/fferrandis/simu/scality/hyperdrive/diskset"
+	"github.com/fferrandis/simu/scality/hyperdrive/config"
+	"github.com/fferrandis/simu/scality/hyperdrive/disks"
+	"github.com/fferrandis/simu/scality/hyperdrive/diskset"
 )
 
 func TestCreateGroup(t *testing.T) {
-	var set DiskSet
-	var model = DiskNew(2000, 10, 5, 0)
 	var group ExtentDataGroup
 	var coding_g ExtentCodingGroup
+	diskcfg := []config.DiskCfg{config.DiskCfg{2000, 1000, 1000, 3},
+		config.DiskCfg{2000, 2000, 1500, 3}}
 
-	set.DiskSetInit(8, model)
-	data := make([]*Disk, 4)
-	coding := make([]*Disk, 2)
+	set := diskset.New(diskcfg, 0)
+
+	data := make([]*disks.Disk, 4)
+	coding := make([]*disks.Disk, 2)
 
 	r := set.DiskSetSelect(data, coding, 4, 2)
 	if r != true {

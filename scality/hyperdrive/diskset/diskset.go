@@ -1,34 +1,36 @@
 package diskset
 
 import (
+	hdcfg "github.com/fferrandis/simu/scality/hyperdrive/config"
+	hddisk "github.com/fferrandis/simu/scality/hyperdrive/disks"
 	"sync"
-
-	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
 )
 
 type DiskSet struct {
 	current_disk int
-	disk         []*Disk
+	disk         []*hddisk.Disk
 	sync.Mutex
 }
 
-func NewDiskSet(number_of_disk int, model_disk *Disk) *DiskSet {
+func New(cfg []hdcfg.DiskCfg, now uint64) *DiskSet {
 	ds := &DiskSet{}
-	ds.disk = make([]*Disk, number_of_disk)
-	for i := 0; i < number_of_disk; i++ {
-		ds.disk[i] = model_disk
+
+	ds.disk = make([]*hddisk.Disk, 0)
+	for _, d := range cfg {
+		ds.disk = append(ds.disk, hddisk.New(d, now)...)
 	}
+
 	return ds
 }
 
-func (ds *DiskSet) DiskSetAdd(disk *Disk) {
+func (ds *DiskSet) DiskSetAdd(disk *hddisk.Disk) {
 	ds.Lock()
 	defer ds.Unlock()
 	ds.disk = append(ds.disk, disk)
 }
 
-func (ds *DiskSet) DiskSetSelect(datas []*Disk,
-	codings []*Disk,
+func (ds *DiskSet) DiskSetSelect(datas []*hddisk.Disk,
+	codings []*hddisk.Disk,
 	nrdata int,
 	nrcoding int) bool {
 	r := true

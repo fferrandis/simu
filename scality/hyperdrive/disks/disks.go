@@ -1,6 +1,7 @@
 package disks
 
 import (
+	hdcfg "github.com/fferrandis/simu/scality/hyperdrive/config"
 	"sync"
 )
 
@@ -104,13 +105,24 @@ func (this *Disk) NewFile(filelen uint64, ts uint64) (bool, uint64) {
 
 }
 
-func DiskNew(capacity uint64, write_speed uint64, read_speed uint64, ts_create uint64) *Disk {
-	return &Disk{capacity: capacity,
-		used:        0,
-		totalw:      0,
-		totalr:      0,
-		lastts:      ts_create,
-		write_speed: write_speed,
-		read_speed:  read_speed,
+func New(d hdcfg.DiskCfg, ts_create uint64) []*Disk {
+	nr_instance := d.Nr_instances
+	if nr_instance == 0 {
+		nr_instance = 1
 	}
+	r := make([]*Disk, 0, nr_instance)
+
+	for i := 0; i < nr_instance; i++ {
+		r = append(r, &Disk{
+			capacity:    d.Capacity,
+			used:        0,
+			totalw:      0,
+			totalr:      0,
+			load:        0,
+			lastts:      ts_create,
+			write_speed: d.Write_speed,
+			read_speed:  d.Read_speed,
+		})
+	}
+	return r
 }

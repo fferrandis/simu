@@ -4,44 +4,41 @@ import (
 	"fmt"
 	"sync"
 
-	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
-	. "github.com/fferrandis/simu/scality/hyperdrive/diskset"
-	. "github.com/fferrandis/simu/scality/hyperdrive/group"
+	"github.com/fferrandis/simu/scality/hyperdrive/config"
+	"github.com/fferrandis/simu/scality/hyperdrive/disks"
+	"github.com/fferrandis/simu/scality/hyperdrive/diskset"
+	"github.com/fferrandis/simu/scality/hyperdrive/group"
 )
 
 type HDSrv struct {
-	dset *DiskSet
+	dset *diskset.DiskSet
 
-	group Group
+	group group.Group
 
 	nrdata     int
 	nrcoding   int
 	extentsize uint64
+	name       string
 	sync.Mutex
 }
 
 func (hdsrv *HDSrv) HDSrvGroupInit(ts uint64) bool {
-	datadisk := make([]*Disk, hdsrv.nrdata)
-	codingdisk := make([]*Disk, hdsrv.nrcoding)
+	datadisk := make([]*disks.Disk, hdsrv.nrdata)
+	codingdisk := make([]*disks.Disk, hdsrv.nrcoding)
 	hdsrv.dset.DiskSetSelect(datadisk, codingdisk, hdsrv.nrdata, hdsrv.nrcoding)
 	hdsrv.group.GroupInit(datadisk, codingdisk, hdsrv.extentsize, hdsrv.nrdata, hdsrv.nrcoding, ts)
 
 	return true
 }
 
-func NewHDSrv(nrdata int,
-	nrcoding int,
-	extentsize uint64,
-	data *Disk,
-	numberof_disk int,
-	ts uint64) *HDSrv {
+func New(extentsize uint64, nrd int, nrc int, srvcfg config.HdSrvCfg, ts uint64) *HDSrv {
 
 	h := &HDSrv{
-
-		nrdata:     nrdata,
-		nrcoding:   nrcoding,
+		dset:       diskset.New(srvcfg.Diskconfig, ts),
+		nrdata:     nrd,
+		nrcoding:   nrc,
 		extentsize: extentsize,
-		dset:       NewDiskSet(numberof_disk, data),
+		name:       srvcfg.Name,
 	}
 
 	h.HDSrvGroupInit(ts)

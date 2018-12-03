@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"sync"
 
-	hdcfg "github.com/fferrandis/simu/scality/hyperdrive/config"
-	. "github.com/fferrandis/simu/scality/hyperdrive/hdcluster"
+	"github.com/fferrandis/simu/scality/hyperdrive/config"
+	"github.com/fferrandis/simu/scality/hyperdrive/hdcluster"
 )
 
 type HDIoChanMsg struct {
@@ -57,7 +57,7 @@ func worker(id int) {
 		}
 
 		fmt.Println("worker ", id, "inject ", nextjob, "bytes")
-		ret, load := HDClusterSrvPut(nextjob.datalen)
+		ret, load := hdcluster.HDClusterSrvPut(nextjob.datalen)
 		if ret != true {
 			hdio.ret[id] <- HDIoChanRsp{ret, load, 500}
 		} else {
@@ -111,20 +111,20 @@ func root(resp http.ResponseWriter, req *http.Request) {
 }
 
 func addsrv(resp http.ResponseWriter, req *http.Request) {
-	var nrdisk int
-	var capacity uint64
+	//var nrdisk int
+	//var capacity uint64
 
-	for hdr, value := range req.Header {
-		fmt.Println(hdr)
-		switch hdr {
-		case "X-Sim-Nrdisk":
-			nrdisk, _ = strconv.Atoi(value[0])
-		case "X-Sim-Diskcapa":
-			fmt.Println(value)
-			capacity, _ = strconv.ParseUint(value[0], 10, 64)
-		}
-	}
-	HDClusterSrvAdd(nrdisk, capacity)
+	//for hdr, value := range req.Header {
+	//	fmt.Println(hdr)
+	//	switch hdr {
+	//	case "X-Sim-Nrdisk":
+	//		nrdisk, _ = strconv.Atoi(value[0])
+	//	case "X-Sim-Diskcapa":
+	//		fmt.Println(value)
+	//		capacity, _ = strconv.ParseUint(value[0], 10, 64)
+	//	}
+	//}
+	//HDClusterSrvAdd(nrdisk, capacity)
 	resp.WriteHeader(http.StatusOK)
 }
 
@@ -163,8 +163,6 @@ func HDIoStart() {
 	for u, handler := range handler_map {
 		http.HandleFunc(u, handler)
 	}
-	for _, srv := range hdcfg.HDCFG.Hdservers {
-		HDClusterSrvAdd(srv.Nr_disk, srv.Capacity)
-	}
+	hdcluster.Init(config.HDCFG)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

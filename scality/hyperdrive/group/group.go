@@ -7,8 +7,6 @@ import (
 	. "github.com/fferrandis/simu/scality/hyperdrive/extentgroup"
 )
 
-type DiskRefSet []*Disk
-
 type Group struct {
 	extentd  ExtentDataGroup
 	extentc  ExtentCodingGroup
