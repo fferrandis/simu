@@ -1,6 +1,7 @@
 package hdio
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,6 +69,12 @@ func worker(id int) {
 	}
 }
 
+type Answer struct {
+	Scal_response_time    uint64
+	Scal_accumulated_len  uint64
+	Scal_accumulated_load uint64
+}
+
 func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
 	if hdio.closed == true {
 		resp.WriteHeader(503)
@@ -79,15 +86,14 @@ func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
 		hdio.msg[id] <- HDIoChanMsg{datalen}
 
 		data := <-hdio.ret[id]
-		loadstr := strconv.FormatUint(data.load, 10)
 		hdio.datalen += datalen
 		hdio.load += data.load
-		datalenstr := strconv.FormatUint(hdio.datalen, 10)
-		totloadstr := strconv.FormatUint(hdio.load, 10)
-		resp.Header().Add("X-IO-Load", loadstr)
-		bodyStr := "{\n\"scal-response-time\" : " + loadstr + ",\n\"scal-accumulated-bytes\": " + datalenstr + ",\n\"scal-accumumated-load\": " + totloadstr + "\n}\n"
+		tp := Answer{data.load, hdio.datalen, hdio.load}
+		bodyStr, err := json.Marshal(tp)
 		resp.WriteHeader(data.code)
-		resp.Write([]byte(bodyStr))
+		if err == nil {
+			resp.Write([]byte(bodyStr))
+		}
 
 	} else {
 		for i := 0; i < hdio.nr; i++ {
