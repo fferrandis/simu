@@ -1,4 +1,4 @@
-package disks
+package disk
 
 import (
 	"fmt"

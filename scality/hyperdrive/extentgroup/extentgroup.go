@@ -5,17 +5,17 @@ import (
 	"sort"
 	"sync"
 
-	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
+	"github.com/fferrandis/simu/scality/hyperdrive/disk"
 )
 
 type Extent struct {
 	usage, extentsize uint64
-	diskref           *Disk
+	diskref           *disk.Disk
 	sync.Mutex
 	id int
 }
 
-func (e *Extent) ExtentPutData(datalen uint64, ts uint64) (bool, uint64) {
+func (e *Extent) PutData(datalen uint64, ts uint64) (bool, uint64) {
 	r := true
 	load := uint64(0)
 	e.Lock()
@@ -27,17 +27,14 @@ func (e *Extent) ExtentPutData(datalen uint64, ts uint64) (bool, uint64) {
 	return r, load
 }
 
-func NewExtent(size uint64, dref *Disk) *Extent {
-	return &Extent{extentsize: size, diskref: dref}
+func NewExtent(size uint64, dref *disk.Disk) *Extent {
+	return &Extent{extentsize: size, diskref: dref.Dup()}
 }
 
 func (e *Extent) ExtentUsageGet() (uint64, uint64) {
-	u, s := uint64(0), uint64(0)
 	e.Lock()
 	defer e.Unlock()
-	u = e.usage
-	s = e.extentsize
-	return u, s
+	return e.usage, e.extentsize
 }
 
 type ExtentDataGroup struct {
@@ -76,7 +73,7 @@ func (e *ExtentDataGroup) ExtentDataGroupPutData(datalen uint64, ts uint64) (boo
 
 	u1, s1 := e.list[0].ExtentUsageGet()
 	if u1+datalen <= s1 {
-		r, load = e.list[0].ExtentPutData(datalen, ts)
+		r, load = e.list[0].PutData(datalen, ts)
 	}
 	sort.Sort(e)
 
@@ -104,7 +101,7 @@ func (e *ExtentCodingGroup) ExtentCodingGroupClose(ts uint64) {
 	}
 }
 
-func (e *ExtentDataGroup) ExtentDataGroupInit(disk []*Disk,
+func (e *ExtentDataGroup) ExtentDataGroupInit(disk []*disk.Disk,
 	nrdata int, extentsize uint64, ts uint64) {
 	if cap(e.list) < nrdata {
 		e.list = make([]*Extent, nrdata)
@@ -124,7 +121,7 @@ func (e *ExtentDataGroup) ExtentDataGroupInit(disk []*Disk,
 	}
 }
 
-func (e *ExtentCodingGroup) ExtentCodingGroupInit(disk []*Disk,
+func (e *ExtentCodingGroup) ExtentCodingGroupInit(disk []*disk.Disk,
 	nrcoding int, extentsize uint64, ts uint64) {
 	if cap(e.list) < nrcoding {
 		e.list = make([]*Extent, nrcoding)
@@ -133,10 +130,7 @@ func (e *ExtentCodingGroup) ExtentCodingGroupInit(disk []*Disk,
 	e.nrcoding = nrcoding
 	e.extentsize = extentsize
 	for i := 0; i < nrcoding; i++ {
-		e.list[i] = &Extent{}
-		e.list[i].diskref = disk[i]
-		e.list[i].usage = 0
-		e.list[i].extentsize = extentsize
+		e.list[i] = NewExtent(extentsize, disk[i])
 		e.list[i].id = i
 		ret, _ := disk[i].NewFile(extentsize, ts)
 		if ret != true {

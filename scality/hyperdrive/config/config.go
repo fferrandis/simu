@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 )
 
 const (
@@ -46,30 +45,25 @@ var HDCFG = HdCfg{
 
 func HDCfgDefault() {
 	fmt.Println("no readable configuration, use default settings")
-	HDCFG.Hdservers = append(HDCFG.Hdservers, HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT})
-	HDCFG.Hdservers = append(HDCFG.Hdservers, HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT})
-	HDCFG.Hdservers = append(HDCFG.Hdservers, HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT})
-
+	HDCFG.Hdservers = append(HDCFG.Hdservers, HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT},
+		HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT},
+		HdSrvCfg{NRDISKDEFAULT, CAPACITYDISKDEFAULT})
 }
 
 func HDCfgLoad(filename *string) {
-
 	if filename == nil {
 		HDCfgDefault()
+		return
 	} else {
-		file, err := os.Open(*filename)
+		content, err := ioutil.ReadFile(*filename)
 		if err != nil {
 			HDCfgDefault()
 		} else {
-			content, _ := ioutil.ReadAll(file)
-			err := json.Unmarshal(content, &HDCFG)
-			if err != nil {
+			if err := json.Unmarshal(content, &HDCFG); err != nil {
 				fmt.Println("cannot parse json file ", *filename, "cause : ", err)
 				HDCfgDefault()
 			}
-			file.Close()
 		}
 	}
 	fmt.Println("configuration used ", HDCFG)
-
 }

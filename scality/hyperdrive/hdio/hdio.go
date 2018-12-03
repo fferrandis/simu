@@ -28,22 +28,20 @@ type HDIoSrv struct {
 	closed bool
 	msg    []chan HDIoChanMsg
 	ret    []chan HDIoChanRsp
-	lock   sync.Mutex
+	sync.Mutex
 }
 
 var hdio HDIoSrv
 
 func getnextchan() int {
-	i := 0
-	hdio.lock.Lock()
-	{
-		if hdio.curr >= hdio.nr {
-			hdio.curr = 0
-		}
-		i = hdio.curr
-		hdio.curr++
+	hdio.Lock()
+	defer hdio.Unlock()
+
+	if hdio.curr >= hdio.nr {
+		hdio.curr = 0
 	}
-	hdio.lock.Unlock()
+	i := hdio.curr
+	hdio.curr++
 	return i
 }
 
@@ -53,7 +51,7 @@ func worker(id int) {
 
 		if ok == false {
 			fmt.Println("killing worker ", id, ok)
-			return
+			break
 		}
 
 		fmt.Println("worker ", id, "inject ", nextjob, "bytes")
@@ -158,7 +156,7 @@ var handler_map = map[string]func(http.ResponseWriter, *http.Request){
 	"/put":     onput,
 }
 
-func HDIoStart() {
+func Start() {
 	createworkerpool(10)
 	for u, handler := range handler_map {
 		http.HandleFunc(u, handler)

@@ -5,18 +5,21 @@ import (
 	"sync"
 
 	cfg "github.com/fferrandis/simu/scality/hyperdrive/config"
-	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
-	. "github.com/fferrandis/simu/scality/hyperdrive/hdserver"
+	"github.com/fferrandis/simu/scality/hyperdrive/disk"
+	"github.com/fferrandis/simu/scality/hyperdrive/hdserver"
 )
 
 type HDCluster struct {
-	srvs    []*HDSrv
-	srvcurr int
-	sync.Mutex
+	srvs     []*hdserver.HDSrv
+	srvcurr  int
 	totallen uint64
+	sync.Mutex
 }
 
-var cluster HDCluster
+var cluster = HDCluster{
+	srvs:    make([]*hdserver.HDSrv, 0, 8),
+	srvcurr: 0,
+}
 
 func bytes2ts(totallen uint64) uint64 {
 	p := float64(totallen) / float64(cfg.HDCFG.Network_bdwidth)
@@ -26,8 +29,8 @@ func bytes2ts(totallen uint64) uint64 {
 
 func HDClusterSrvAdd(nrdisk int, capacity uint64) {
 	now := bytes2ts(cluster.totallen)
-	d := DiskNew(capacity, cfg.HDCFG.Write_speed, cfg.HDCFG.Read_speed, now)
-	newsrv := NewHDSrv(cfg.HDCFG.Data_scheme,
+	d := disk.New(capacity, cfg.HDCFG.Write_speed, cfg.HDCFG.Read_speed, now)
+	newsrv := hdserver.NewHDSrv(cfg.HDCFG.Data_scheme,
 		cfg.HDCFG.Coding_scheme,
 		cfg.HDCFG.Extent_size,
 		d,
@@ -38,13 +41,8 @@ func HDClusterSrvAdd(nrdisk int, capacity uint64) {
 	cluster.srvs = append(cluster.srvs, newsrv)
 }
 
-func init() {
-	cluster.srvs = make([]*HDSrv, 0, 8)
-	cluster.srvcurr = 0
-}
-
-func selectHD() *HDSrv {
-	var p *HDSrv
+func selectHD() *hdserver.HDSrv {
+	var p *hdserver.HDSrv
 	l := len(cluster.srvs)
 	if l > 0 {
 		if cluster.srvcurr >= l {
@@ -56,20 +54,17 @@ func selectHD() *HDSrv {
 }
 
 func HDClusterSrvPut(datalen uint64) (bool, uint64) {
-	var p *HDSrv
-	var ts uint64
-
 	cluster.Lock()
 	defer cluster.Unlock()
 
-	ts = bytes2ts(cluster.totallen)
-	p = selectHD()
+	ts := bytes2ts(cluster.totallen)
+	p := selectHD()
 	cluster.totallen += datalen
 
 	if p == nil {
 		fmt.Println("cannot put data on cluster since no servers are running")
 		return false, 0
 	}
-	r, load := p.HDSrvPutData(datalen, ts)
+	r, load := p.PutData(datalen, ts)
 	return r, load
 }

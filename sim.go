@@ -15,5 +15,5 @@ func main() {
 	hdcfg.HDCfgLoad(filename)
 	fmt.Println("started simulator")
 
-	hdio.HDIoStart()
+	hdio.Start()
 }

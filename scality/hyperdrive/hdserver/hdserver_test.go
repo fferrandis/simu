@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
+	"github.com/fferrandis/simu/scality/hyperdrive/disk"
 )
 
 func TestServer(t *testing.T) {
 	/*disk model */
-	r := DiskNew(2000, 100, 100, 0)
+	r := disk.New(2000, 100, 100, 0)
 	hd := NewHDSrv(4, 2, 1000, r, 6, 0)
 
 	/* fill 4 extents (size = 1000) */

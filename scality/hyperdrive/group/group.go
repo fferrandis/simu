@@ -3,7 +3,7 @@ package group
 import (
 	"sync"
 
-	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
+	. "github.com/fferrandis/simu/scality/hyperdrive/disk"
 	. "github.com/fferrandis/simu/scality/hyperdrive/extentgroup"
 )
 
