@@ -70,9 +70,10 @@ func worker(id int) {
 }
 
 type Answer struct {
-	Scal_response_time    uint64
-	Scal_accumulated_len  uint64
-	Scal_accumulated_load uint64
+	Scal_response_time       uint64
+	Scal_accumulated_len     uint64
+	Scal_accumulated_load    uint64
+	Scal_estimated_througput float64
 }
 
 func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
@@ -88,7 +89,7 @@ func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
 		data := <-hdio.ret[id]
 		hdio.datalen += datalen
 		hdio.load += data.load
-		tp := Answer{data.load, hdio.datalen, hdio.load}
+		tp := Answer{data.load, hdio.datalen, hdio.load, (float64(hdio.datalen) * 1000000000) / float64(hdio.load)}
 		bodyStr, err := json.Marshal(tp)
 		resp.WriteHeader(data.code)
 		if err == nil {
