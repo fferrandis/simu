@@ -23,12 +23,14 @@ type HDIoChanRsp struct {
 }
 
 type HDIoSrv struct {
-	nr     int
-	curr   int
-	closed bool
-	msg    []chan HDIoChanMsg
-	ret    []chan HDIoChanRsp
-	lock   sync.Mutex
+	nr      int
+	curr    int
+	closed  bool
+	msg     []chan HDIoChanMsg
+	ret     []chan HDIoChanRsp
+	lock    sync.Mutex
+	datalen uint64
+	load    uint64
 }
 
 var hdio HDIoSrv
@@ -78,8 +80,12 @@ func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
 
 		data := <-hdio.ret[id]
 		loadstr := strconv.FormatUint(data.load, 10)
+		hdio.datalen += datalen
+		hdio.load += data.load
+		datalenstr := strconv.FormatUint(hdio.datalen, 10)
+		totloadstr := strconv.FormatUint(hdio.load, 10)
 		resp.Header().Add("X-IO-Load", loadstr)
-		bodyStr := "{\"scal-response-time\" : " + loadstr + "}\n"
+		bodyStr := "{\n\"scal-response-time\" : " + loadstr + ",\n\"scal-accumulated-bytes\": " + datalenstr + ",\n\"scal-accumumated-load\": " + totloadstr + "\n}\n"
 		resp.WriteHeader(data.code)
 		resp.Write([]byte(bodyStr))
 
