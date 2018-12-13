@@ -14,14 +14,16 @@ type Disk struct {
 	mutex                          sync.Mutex
 }
 
-func (this *Disk) DiskUsageGet() uint64 {
+func (this *Disk) DiskUsageGet() (uint64, float64) {
 	r := uint64(0)
+	l := float64(0)
 	this.mutex.Lock()
 	{
 		r = this.used
+		l = this.load
 	}
 	this.mutex.Unlock()
-	return r
+	return r, l
 }
 
 func dataputtoload(datalen uint64, write_speed uint64) float64 {

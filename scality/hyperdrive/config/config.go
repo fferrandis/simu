@@ -9,6 +9,12 @@ import (
 )
 
 const (
+	RR   = "RR"
+	LOAD = "LOAD"
+)
+
+const (
+	D_SELECT_ALG        = RR
 	READSPEED           = 200000000 // 200Mo/s
 	WRITESPEED          = 100000000 // 100Mo/s
 	CODINGSCHEME        = 2
@@ -34,19 +40,21 @@ type HdSrvCfg struct {
 }
 
 type HdCfg struct {
-	Extent_size     uint64
-	Data_scheme     int
-	Coding_scheme   int
-	Network_bdwidth uint64
-	Hdservers       []HdSrvCfg
+	Disk_selection_algorithm string
+	Extent_size              uint64
+	Data_scheme              int
+	Coding_scheme            int
+	Network_bdwidth          uint64
+	Hdservers                []HdSrvCfg
 }
 
 var HDCFG = HdCfg{
-	Extent_size:     EXTENTSIZE,
-	Data_scheme:     DATASCHEME,
-	Coding_scheme:   CODINGSCHEME,
-	Network_bdwidth: NETWORKTHR,
-	Hdservers:       make([]HdSrvCfg, 0),
+	Disk_selection_algorithm: RR,
+	Extent_size:              EXTENTSIZE,
+	Data_scheme:              DATASCHEME,
+	Coding_scheme:            CODINGSCHEME,
+	Network_bdwidth:          NETWORKTHR,
+	Hdservers:                make([]HdSrvCfg, 0),
 }
 
 func HDCfgDefault() {
@@ -62,7 +70,7 @@ func HDCfgDefault() {
 	for i := uint64(0); i < NRSRVDEFAULT; i++ {
 		hdsrv := HdSrvCfg{
 			Name:       "hserver" + strconv.FormatUint(i, 10),
-			Diskconfig: make([]DiskCfg, 1),
+			Diskconfig: make([]DiskCfg, 0),
 		}
 		hdsrv.Diskconfig = append(hdsrv.Diskconfig, model)
 		HDCFG.Hdservers = append(HDCFG.Hdservers, hdsrv)

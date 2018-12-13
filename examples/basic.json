@@ -1,0 +1,20 @@
+{
+  "disk_selection_algorithm" : "RR",
+  "extent_size"     : 5000000000,
+  "data_scheme"     :4,
+  "coding_scheme"   : 2,
+  "network_bdwidth" : 125000000,
+    "hdservers" : [
+      {
+        "name" : "hdsrv1",
+        "diskconfig" : [
+          {
+            "capacity"    : 5000000000,
+            "read_speed"  : 200000000,
+            "write_speed" : 100000000,
+            "nr_instances" : 6
+          }
+        ]
+      }
+    ]
+}

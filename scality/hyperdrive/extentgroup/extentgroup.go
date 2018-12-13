@@ -5,6 +5,7 @@ import (
 	"sort"
 	"sync"
 
+	cfg "github.com/fferrandis/simu/scality/hyperdrive/config"
 	. "github.com/fferrandis/simu/scality/hyperdrive/disks"
 )
 
@@ -62,10 +63,23 @@ func (a *ExtentDataGroup) Swap(i, j int) {
 }
 
 func (a *ExtentDataGroup) Less(i, j int) bool {
-	u1, _ := a.list[i].ExtentUsageGet()
-	u2, _ := a.list[j].ExtentUsageGet()
+	if cfg.HDCFG.Disk_selection_algorithm == cfg.RR {
+		u1, _ := a.list[i].ExtentUsageGet()
+		u2, _ := a.list[j].ExtentUsageGet()
 
-	return u1 < u2
+		return u1 < u2
+	} else {
+		u1, l1 := a.list[i].diskref.DiskUsageGet()
+		u2, l2 := a.list[j].diskref.DiskUsageGet()
+
+		if l1 < l2 {
+			return true
+		} else if l1 == l2 {
+			return u1 < u2
+		} else {
+			return false
+		}
+	}
 }
 
 func (e *ExtentDataGroup) ExtentDataGroupPutData(datalen uint64, ts uint64) (bool, uint64) {
@@ -74,11 +88,15 @@ func (e *ExtentDataGroup) ExtentDataGroupPutData(datalen uint64, ts uint64) (boo
 	e.Lock()
 	defer e.Unlock()
 
+	for _, a := range e.list {
+		a.diskref.SetTime(ts)
+	}
+	sort.Sort(e)
+
 	u1, s1 := e.list[0].ExtentUsageGet()
 	if u1+datalen <= s1 {
 		r, load = e.list[0].ExtentPutData(datalen, ts)
 	}
-	sort.Sort(e)
 
 	return r, load
 }
