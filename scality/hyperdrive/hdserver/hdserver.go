@@ -7,6 +7,7 @@ import (
 	"github.com/fferrandis/simu/scality/hyperdrive/config"
 	"github.com/fferrandis/simu/scality/hyperdrive/disks"
 	"github.com/fferrandis/simu/scality/hyperdrive/diskset"
+	"github.com/fferrandis/simu/scality/hyperdrive/diskstat"
 	"github.com/fferrandis/simu/scality/hyperdrive/group"
 )
 
@@ -59,4 +60,8 @@ func (hdsrv *HDSrv) HDSrvPutData(datalen uint64, ts uint64) (bool, uint64) {
 	}
 
 	return r, load
+}
+
+func (hdsrv *HDSrv) HDSrvGetDiskStat(ts uint64) []diskstat.DiskStat {
+	return hdsrv.dset.DiskSetStatsGet(ts)
 }

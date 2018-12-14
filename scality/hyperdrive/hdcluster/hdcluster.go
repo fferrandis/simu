@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/fferrandis/simu/scality/hyperdrive/config"
+	"github.com/fferrandis/simu/scality/hyperdrive/diskstat"
 	"github.com/fferrandis/simu/scality/hyperdrive/hdserver"
 )
 
@@ -66,4 +67,18 @@ func HDClusterSrvPut(datalen uint64) (bool, uint64) {
 	}
 	r, load := p.HDSrvPutData(datalen, ts)
 	return r, load
+}
+
+func HDClusterStatsGet() []diskstat.DiskStat {
+	r := make([]diskstat.DiskStat, 0)
+
+	cluster.Lock()
+	{
+		ts := bytes2ts(cluster.totallen)
+		for _, srv := range cluster.srvs {
+			r = append(r, srv.HDSrvGetDiskStat(ts)...)
+		}
+	}
+	cluster.Unlock()
+	return r
 }

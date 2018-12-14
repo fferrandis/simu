@@ -2,6 +2,7 @@ package disks
 
 import (
 	hdcfg "github.com/fferrandis/simu/scality/hyperdrive/config"
+	. "github.com/fferrandis/simu/scality/hyperdrive/diskstat"
 	"sync"
 )
 
@@ -24,6 +25,20 @@ func (this *Disk) DiskUsageGet() (uint64, float64) {
 	}
 	this.mutex.Unlock()
 	return r, l
+}
+
+func (this *Disk) DiskStatsGet(ts uint64) DiskStat {
+	d := DiskStat{}
+	this.mutex.Lock()
+	{
+		this.settime(ts)
+		d.Totalr = this.totalr
+		d.Totalw = this.totalw
+		d.Totall = this.load
+	}
+	this.mutex.Unlock()
+	return d
+
 }
 
 func dataputtoload(datalen uint64, write_speed uint64) float64 {
@@ -56,6 +71,7 @@ func (this *Disk) PutData(datalen uint64, ts uint64) (bool, uint64) {
 		/* flush data */
 		this.settime(ts)
 		this.load = this.load + dataputtoload(datalen, this.write_speed)
+		this.totalw = this.totalw + datalen
 		retb = true
 		retload = this.load
 	}
@@ -72,6 +88,7 @@ func (this *Disk) GetData(datalen uint64, ts uint64) (bool, uint64) {
 	{
 		this.settime(ts)
 		this.load = this.load + datagettoload(datalen, this.read_speed)
+		this.totalr = this.totalr + datalen
 		retload = this.load
 	}
 	this.mutex.Unlock()

@@ -164,11 +164,23 @@ func onput(resp http.ResponseWriter, req *http.Request) {
 	PutData(datalen, resp)
 }
 
+func getstat(resp http.ResponseWriter, req *http.Request) {
+	r := hdcluster.HDClusterStatsGet()
+	bodyStr, err := json.Marshal(r)
+	if err == nil {
+		resp.WriteHeader(200)
+		resp.Write([]byte(bodyStr))
+	} else {
+		resp.WriteHeader(501)
+	}
+}
+
 var handler_map = map[string]func(http.ResponseWriter, *http.Request){
 	"/":        root,
 	"/srv/add": addsrv,
 	"/srv/del": delsrv,
 	"/put":     onput,
+	"/stats":   getstat,
 }
 
 func HDIoStart() {

@@ -3,6 +3,7 @@ package diskset
 import (
 	hdcfg "github.com/fferrandis/simu/scality/hyperdrive/config"
 	hddisk "github.com/fferrandis/simu/scality/hyperdrive/disks"
+	. "github.com/fferrandis/simu/scality/hyperdrive/diskstat"
 	"sync"
 )
 
@@ -58,5 +59,14 @@ func (ds *DiskSet) DiskSetSelect(datas []*hddisk.Disk,
 		}
 	}
 
+	return r
+}
+
+func (ds *DiskSet) DiskSetStatsGet(ts uint64) []DiskStat {
+	r := make([]DiskStat, len(ds.disk))
+
+	for i, disk := range ds.disk {
+		r[i] = disk.DiskStatsGet(ts)
+	}
 	return r
 }

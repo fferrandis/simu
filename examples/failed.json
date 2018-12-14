@@ -1,5 +1,5 @@
 {
-  "disk_selection_algorithm" : "LOAD",
+  "disk_selection_algorithm" : "RR",
   "extent_size"     : 5000000000,
   "data_scheme"     :4,
   "coding_scheme"   : 2,
