@@ -15,6 +15,7 @@ import (
 
 type HDIoChanMsg struct {
 	datalen uint64
+	nriter  uint64
 }
 
 type HDIoChanRsp struct {
@@ -60,7 +61,7 @@ func worker(id int) {
 		}
 
 		fmt.Println("worker ", id, "inject ", nextjob, "bytes")
-		ret, load := hdcluster.HDClusterSrvPut(nextjob.datalen)
+		ret, load := hdcluster.HDClusterSrvPut(nextjob.datalen, nextjob.nriter)
 		if ret != true {
 			hdio.ret[id] <- HDIoChanRsp{ret, load, 500}
 		} else {
@@ -76,7 +77,7 @@ type Answer struct {
 	Scal_estimated_througput float64
 }
 
-func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
+func PutData(datalen uint64, resp http.ResponseWriter, nriter uint64) (bool, string) {
 	if hdio.closed == true {
 		resp.WriteHeader(503)
 		return false, "already closed"
@@ -84,7 +85,7 @@ func PutData(datalen uint64, resp http.ResponseWriter) (bool, string) {
 
 	if datalen != 0 {
 		id := getnextchan()
-		hdio.msg[id] <- HDIoChanMsg{datalen}
+		hdio.msg[id] <- HDIoChanMsg{datalen, nriter}
 
 		data := <-hdio.ret[id]
 		hdio.datalen += datalen
@@ -146,6 +147,8 @@ func delsrv(resp http.ResponseWriter, req *http.Request) {
 }
 
 func onput(resp http.ResponseWriter, req *http.Request) {
+	nriter_i := uint64(1)
+	var nriter []string
 	if req.Method != "PUT" {
 		fmt.Println("bad method : ", req.Method)
 		return
@@ -161,7 +164,14 @@ func onput(resp http.ResponseWriter, req *http.Request) {
 		fmt.Println("cannot parse datalen", val, err2)
 		return
 	}
-	PutData(datalen, resp)
+	nriter, found = m["batch"]
+	if found {
+		nriter_i, err2 = strconv.ParseUint(nriter[0], 10, 64)
+		if err2 != nil {
+			nriter_i = uint64(1)
+		}
+	}
+	PutData(datalen, resp, nriter_i)
 }
 
 func getstat(resp http.ResponseWriter, req *http.Request) {
