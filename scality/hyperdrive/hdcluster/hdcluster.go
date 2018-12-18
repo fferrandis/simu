@@ -50,23 +50,38 @@ func selectHD() *hdserver.HDSrv {
 	return p
 }
 
-func HDClusterSrvPut(datalen uint64) (bool, uint64) {
+func HDClusterSrvPut(datalen uint64, nriter uint64) (bool, uint64) {
 	var p *hdserver.HDSrv
 	var ts uint64
+	max_load := uint64(0)
 
 	cluster.Lock()
 	defer cluster.Unlock()
 
 	ts = bytes2ts(cluster.totallen)
-	p = selectHD()
 	cluster.totallen += datalen
 
-	if p == nil {
-		fmt.Println("cannot put data on cluster since no servers are running")
-		return false, 0
+	for i := uint64(0); i < nriter; i++ {
+		p = selectHD()
+
+		if p == nil {
+			fmt.Println("cannot put data on cluster since no servers are running")
+			return false, 0
+		}
+		for i = 0; i < nriter; i++ {
+			_, load := p.HDSrvPutData(datalen, ts)
+			if nriter > 1 {
+				fmt.Print("load=", load)
+			}
+			if load > max_load {
+				max_load = load
+			}
+		}
 	}
-	r, load := p.HDSrvPutData(datalen, ts)
-	return r, load
+	if nriter > 1 {
+		fmt.Println("")
+	}
+	return true, max_load
 }
 
 func HDClusterStatsGet() []diskstat.DiskStat {

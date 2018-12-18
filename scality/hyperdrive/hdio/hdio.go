@@ -77,22 +77,29 @@ type Answer struct {
 	Scal_estimated_througput float64
 }
 
-func PutData(datalen uint64, resp http.ResponseWriter, nriter uint64) (bool, string) {
+type Answers struct {
+	Answers []Answer
+}
+
+func PutData(datalen uint64, resp http.ResponseWriter, nriter uint64, nrrepeat uint64) (bool, string) {
 	if hdio.closed == true {
 		resp.WriteHeader(503)
 		return false, "already closed"
 	}
+	var answers Answers
 
 	if datalen != 0 {
-		id := getnextchan()
-		hdio.msg[id] <- HDIoChanMsg{datalen, nriter}
-
-		data := <-hdio.ret[id]
-		hdio.datalen += datalen
-		hdio.load += data.load
-		tp := Answer{data.load, hdio.datalen, hdio.load, (float64(hdio.datalen) * 1000000000) / float64(hdio.load)}
-		bodyStr, err := json.Marshal(tp)
-		resp.WriteHeader(data.code)
+		for i := uint64(0); i < nrrepeat; i++ {
+			id := getnextchan()
+			hdio.msg[id] <- HDIoChanMsg{datalen, nriter}
+			data := <-hdio.ret[id]
+			hdio.datalen += datalen
+			hdio.load += data.load
+			tp := Answer{data.load, hdio.datalen, hdio.load, (float64(hdio.datalen) * 1000000000) / float64(hdio.load)}
+			answers.Answers = append(answers.Answers, tp)
+		}
+		bodyStr, err := json.Marshal(answers)
+		resp.WriteHeader(200)
 		if err == nil {
 			resp.Write([]byte(bodyStr))
 		}
@@ -147,6 +154,7 @@ func delsrv(resp http.ResponseWriter, req *http.Request) {
 }
 
 func onput(resp http.ResponseWriter, req *http.Request) {
+	nrrepeat_i := uint64(1)
 	nriter_i := uint64(1)
 	var nriter []string
 	if req.Method != "PUT" {
@@ -171,7 +179,15 @@ func onput(resp http.ResponseWriter, req *http.Request) {
 			nriter_i = uint64(1)
 		}
 	}
-	PutData(datalen, resp, nriter_i)
+	nrrepeat, found := m["repeat"]
+	if found {
+		nrrepeat_i, err2 = strconv.ParseUint(nrrepeat[0], 10, 64)
+		if err2 != nil {
+			nrrepeat_i = uint64(1)
+		}
+	}
+
+	PutData(datalen, resp, nriter_i, nrrepeat_i)
 }
 
 func getstat(resp http.ResponseWriter, req *http.Request) {

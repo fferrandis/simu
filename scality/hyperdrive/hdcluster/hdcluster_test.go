@@ -27,7 +27,7 @@ func TestCluster(t *testing.T) {
 	Init(conf)
 
 	for i := 0; i < 18; i++ {
-		r, load := HDClusterSrvPut(cfg.EXTENTSIZE / 2)
+		r, load := HDClusterSrvPut(cfg.EXTENTSIZE/2, 1)
 		fmt.Println("iter =", i, ";ret =", r, ";load =", load)
 	}
 }

@@ -94,7 +94,7 @@ func (e *ExtentDataGroup) ExtentDataGroupPutData(datalen uint64, ts uint64) (boo
 	sort.Sort(e)
 
 	u1, s1 := e.list[0].ExtentUsageGet()
-	if u1+datalen <= s1 {
+	if s1 == 0 || u1+datalen <= s1 {
 		r, load = e.list[0].ExtentPutData(datalen, ts)
 	}
 
