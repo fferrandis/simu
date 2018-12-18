@@ -110,7 +110,7 @@ func (this *Disk) NewFile(filelen uint64, ts uint64) (bool, uint64) {
 
 	this.mutex.Lock()
 	{
-		if this.used+filelen > this.capacity {
+		if (this.capacity != 0) && (this.used+filelen > this.capacity) {
 			retb = false
 		} else {
 			this.used += filelen
